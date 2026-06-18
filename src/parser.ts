@@ -20,11 +20,6 @@ function cellText(cell: ExcelJS.Cell): string {
   return String(v).trim()
 }
 
-function cellNumber(cell: ExcelJS.Cell): number {
-  const v = cell.value
-  if (v instanceof Date) return excelSerialFromDate(v)
-  return Number(v) || 0
-}
 
 function excelSerialFromDate(d: Date): number {
   return Math.round((d.getTime() / 86400000) + 25569)
@@ -130,7 +125,7 @@ export function parseWorkbook(file: File): Promise<DriverGroup[]> {
         for (const trip of trips) {
           const key = `${trip.driver}|${trip.truck}`
           if (!map.has(key)) {
-            map.set(key, { driver: trip.driver, plate: trip.plate, truck: trip.truck, trips: [], totalVariance: 0 })
+            map.set(key, { driver: trip.driver, plate: trip.plate, truck: String(trip.truck), trips: [], totalVariance: 0 })
           }
           const group = map.get(key)!
           group.trips.push(trip)

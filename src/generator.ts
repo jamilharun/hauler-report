@@ -2,8 +2,7 @@ import ExcelJS from 'exceljs'
 import type { DriverGroup } from './types'
 import { excelDateToLabel, monthYearFromSerial } from './parser'
 
-const GREEN = 'FF2E7D32'
-const RED   = 'FFC62828'
+const RED = 'FFC62828'
 const HEADER_BG = 'FF1565C0'
 
 
