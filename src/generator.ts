@@ -76,6 +76,8 @@ export async function generateReport(groups: DriverGroup[], monthLabel: string):
         trip.mw,
         trip.tonnage,
       ])
+      row.getCell(6).numFmt = '0.000'
+      row.getCell(7).numFmt = '0.000'
       setVarianceCell(row.getCell(8), trip.variance)
     }
 
