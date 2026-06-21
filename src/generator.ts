@@ -17,10 +17,34 @@ function styleHeader(row: ExcelJS.Row) {
   })
 }
 
+function styleTitleRow(row: ExcelJS.Row, colCount: number) {
+  row.worksheet.mergeCells(row.number, 1, row.number, colCount)
+  const cell = row.getCell(1)
+  cell.font = { name: 'Calibri', bold: true, size: 16 }
+  cell.alignment = { horizontal: 'center' }
+}
+
 function styleTotalRow(row: ExcelJS.Row) {
   row.eachCell(cell => {
+    if (cell.value === null || cell.value === undefined || cell.value === '') return
     cell.font = { bold: true }
+    cell.border = { top: { style: 'thin', color: { argb: 'FF000000' } } }
   })
+}
+
+function autoFitColumns(ws: ExcelJS.Worksheet, count: number, startRow = 1) {
+  const center = { alignment: { horizontal: 'center' as const } }
+  const widths = Array(count).fill(8)
+  ws.eachRow((row, rowNum) => {
+    if (rowNum < startRow) return
+    row.eachCell({ includeEmpty: false }, (cell, colIdx) => {
+      if (colIdx <= count) {
+        const len = cell.value?.toString().length ?? 0
+        if (len > widths[colIdx - 1]) widths[colIdx - 1] = len
+      }
+    })
+  })
+  ws.columns = widths.map(w => ({ width: w + 2, style: center }))
 }
 
 function setVarianceCell(cell: ExcelJS.Cell, value: number) {
@@ -38,7 +62,7 @@ export function getMonthLabel(groups: DriverGroup[]): string {
   return 'REPORT'
 }
 
-export async function generateReport(groups: DriverGroup[], monthLabel: string): Promise<void> {
+export async function generateReport(groups: DriverGroup[], monthLabel: string, preparedBy = ''): Promise<void> {
   const wb = new ExcelJS.Workbook()
   const usedNames = new Set<string>()
 
@@ -57,8 +81,8 @@ export async function generateReport(groups: DriverGroup[], monthLabel: string):
     const ws = wb.addWorksheet(sheetName)
 
     // Title rows
-    ws.addRow([`${group.driver.toUpperCase()} (PLATE#: ${group.plate} / TRUCK#: ${group.truck})`])
-    ws.addRow([`MOLASSES TRIP REPORT FOR THE MONTH OF ${monthLabel}`])
+    styleTitleRow(ws.addRow([`${group.driver.toUpperCase()} (PLATE#: ${group.plate} / TRUCK#: ${group.truck})`]), 8)
+    styleTitleRow(ws.addRow([`MOLASSES TRIP REPORT FOR THE MONTH OF ${monthLabel}`]), 8)
     ws.addRow([])
 
     // Header
@@ -82,24 +106,16 @@ export async function generateReport(groups: DriverGroup[], monthLabel: string):
     }
 
     // Total row
-    const totalRow = ws.addRow(['', '', '', '', '', '', 'TOTAL VARIANCE', ''])
+    const totalRow = ws.addRow(['', '', '', '', '', '', 'TOTAL TONNAGE', ''])
     setVarianceCell(totalRow.getCell(8), group.totalVariance)
     styleTotalRow(totalRow)
 
     ws.addRow([])
     ws.addRow(['Prepared By:'])
+    ws.addRow([])
+    ws.addRow([preparedBy])
 
-    // Column widths
-    ws.columns = [
-      { width: 16 }, // SOURCE
-      { width: 16 }, // DESTINATION
-      { width: 20 }, // CLIENT
-      { width: 14 }, // LOADING DATE
-      { width: 22 }, // WAYBILL#
-      { width: 10 }, // MW
-      { width: 10 }, // OUTTURN
-      { width: 12 }, // VARIANCE
-    ]
+    autoFitColumns(ws, 8, 4)
   }
 
   // Ranking sheet
@@ -116,13 +132,7 @@ export async function generateReport(groups: DriverGroup[], monthLabel: string):
     setVarianceCell(row.getCell(5), g.totalVariance)
   })
 
-  rankWs.columns = [
-    { width: 8 },
-    { width: 24 },
-    { width: 18 },
-    { width: 10 },
-    { width: 16 },
-  ]
+  autoFitColumns(rankWs, 5, 3)
 
   // Trigger download
   const buffer = await wb.xlsx.writeBuffer()
