@@ -13,6 +13,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [preparedBy, setPreparedBy] = useState("");
+  const [certifiedBy, setCertifiedBy] = useState("");
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
@@ -47,7 +48,7 @@ export default function App() {
   };
 
   const onDownload = async () => {
-    await generateReport(groups, monthLabel, preparedBy);
+    await generateReport(groups, monthLabel, preparedBy, certifiedBy);
     setStep("done");
   };
 
@@ -57,6 +58,7 @@ export default function App() {
     setMonthLabel("");
     setError("");
     setPreparedBy("");
+    setCertifiedBy("");
   };
 
   return (
@@ -157,17 +159,31 @@ export default function App() {
               </table>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm text-gray-400 mb-1">
-                Prepared By
-              </label>
-              <input
-                type="text"
-                value={preparedBy}
-                onChange={(e) => setPreparedBy(e.target.value)}
-                placeholder="Enter name"
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-gray-500"
-              />
+            <div className="flex gap-4 mb-4">
+              <div className="flex-1">
+                <label className="block text-sm text-gray-400 mb-1">
+                  Prepared By
+                </label>
+                <input
+                  type="text"
+                  value={preparedBy}
+                  onChange={(e) => setPreparedBy(e.target.value)}
+                  placeholder="Enter name"
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-gray-500"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm text-gray-400 mb-1">
+                  Certified Correct
+                </label>
+                <input
+                  type="text"
+                  value={certifiedBy}
+                  onChange={(e) => setCertifiedBy(e.target.value)}
+                  placeholder="Enter name"
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-gray-500"
+                />
+              </div>
             </div>
 
             <button
